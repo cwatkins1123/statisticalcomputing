@@ -1,0 +1,318 @@
+---
+title: "Sports articles for objectivity analysis"
+author: "Chris Watkins"
+date: "12/13/2018"
+output: pdf_document
+header-includes: \usepackage{float}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Introduction
+The data that I selected for this project is "Sports Articles for objectivity analysis Data Set" from the UCI Machine learning repository. This data set includes 1000 instances of sports articles that were labeled as objective or subjective by the Amazon Mechanical Turk [1]. It is multivariate data from April 2018 with 59  attributes (without textID and URL).There were 635 objective articles and 365 subjective articles. The data descriptions can be found in Table \ref{tab:data}. In general, in media it is important to take into account bias of the writer to form our own opinions. The identification of a sports article as objective or subjective is important because we want to know if a sports article is biased. Each team’s beat writers and fan blogs will be biased toward the team by writing to their intended audience of the fans of the team. For example, Angels beat writers will write more positively about Mike Trout while the Astros writers will write more positively about Alex Bregman. For making objective decisions about which player deserves and award or which team is better is difficult unless the article is written purely objectively with the facts. The goal is to build up our own opinions based on facts but if a writer is biased towards a specific team we will not be getting the whole picture. With this in mind the goal of this project is to predict if a sports article is objective or subjective and identify the major differences between the two types of articles. 
+
+\begin{centering}
+\begin{tabular}{|l|l|}
+\hline
+Variable & Description \\
+\hline
+TextID & text file name  \\
+\hline
+URL & link to article  \\
+\hline
+Label & objective vs. subjective  \\
+\hline
+totalWordsCount & total number of words in the article  \\
+\hline
+semanticobjscore & Frequency of words with an objective SENTIWORDNET score  \\
+\hline
+semanticsubjscore & Frequency of words with a subjective SENTIWORDNET score  \\
+\hline
+CC & Frequency of coordinating conjunctions \\
+\hline
+CD & Frequency of numerals and cardinals \\
+\hline
+DT & Frequency of determiners \\
+\hline
+EX & Frequency of existential there \\
+\hline
+FW & Frequency of foreign words \\
+\hline
+INs & Frequency of subordinating preposition or conjunction \\
+\hline
+JJ & Frequency of ordinal adjectives or numerals \\
+\hline
+JJR & Frequency of comparative adjectives \\
+\hline
+JJS & Frequency of superlative adjectives \\
+\hline
+LS & Frequency of list item markers \\
+\hline
+MD & Frequency of modal auxiliaries \\
+\hline
+NN & Frequency of singular common nouns \\
+\hline
+NNP & Frequency of singular proper nouns \\
+\hline
+NNPS & Frequency of plural proper nouns \\
+\hline
+NNS & Frequency of plural common nouns \\
+\hline
+PDT & Frequency of pre-determiners \\
+\hline
+POS & Frequency of genitive markers \\
+\hline
+PRP & Frequency of personal pronouns \\
+\hline
+PRP\$ & Frequency of possessive pronouns \\
+\hline
+RB & Frequency of adverbs \\
+\hline
+RBR & Frequency of comparative adverbs \\
+\hline
+\end{tabular}
+\end{centering}
+
+\begin{centering}
+\begin{table}[ht]
+\begin{tabular}{|l|l|}
+\hline
+RBS & Frequency of superlative adverbs \\
+\hline
+RP & Frequency of particles \\
+\hline
+SYM & Frequency of symbols \\
+\hline
+TOs & Frequency of "to" as preposition or infinitive marker \\
+\hline
+UH & Frequency of interjections \\
+\hline
+VB & Frequency of base form verbs \\
+\hline
+VBD & Frequency of past tense verbs \\
+\hline
+VBG & Frequency of present participle or gerund verbs \\
+\hline
+VBN & Frequency of past participle verbs \\
+\hline
+VBP & Frequency of present tense verbs with plural 3rd person subjects \\
+\hline
+VBZ & Frequency of present tense verbs with singular 3rd person subjects \\
+\hline
+WBT & Frequency of WH-determiners \\
+\hline
+WP & Frequency of WH-pronouns \\
+\hline
+WP\$ & Frequency of possessive WH-pronouns \\
+\hline
+WRB & Frequency of WH-adverbs \\
+\hline
+baseform & Frequency of infinitive verbs (base form verbs preceded by “to”) \\
+\hline
+Quotes & Frequency of quotation pairs in the entire article \\
+\hline
+questionmarks & Frequency of questions marks in the entire article \\
+\hline
+exclamationmarks & Frequency of exclamation marks in the entire article \\
+\hline
+fullstops & Frequency of full stops \\
+\hline
+commas & Frequency of commas \\
+\hline
+semicolon & Frequency of semicolons \\
+\hline
+colon & Frequency of colons \\
+\hline
+ellipsis & Frequency of ellipsis \\
+\hline
+pronouns1st & Frequency of first person pronouns (personal and possessive) \\
+\hline
+pronouns2nd & Frequency of second person pronouns (personal and possessive) \\
+\hline
+pronouns3rd & Frequency of third person pronouns (personal and possessive) \\
+\hline
+compsupadjadv & Frequency of comparative and superlative adjectives and adverbs \\
+\hline
+past & Frequency of past tense verbs with 1st and 2nd person pronouns \\
+\hline
+imperative & Frequency of imperative verbs \\
+\hline
+present3rd & Frequency of present tense verbs with 3rd person pronouns \\
+\hline
+present1st2nd & Frequency of present tense verbs with 1st and 2nd person pronouns \\
+\hline
+sentence1st & First sentence class \\
+\hline
+sentencelast & Last sentence class \\
+\hline
+txtcomplexity & Text complexity score \\
+\hline
+\end{tabular}
+\caption{\label{tab:data}Data description}
+\end{table}
+\end{centering}
+
+#Methods
+Before analyzing the data both TextID and URL were deleted. Since each are unique identifiers to each observation they do not add any predictive power or add anything to the analysis. The first objective of this project is to find differences in attributes of subjective articles and objective articles. My approach to this will be basic statistical exploration and t-tests. The next objective is to show differences in articles visually. To achieve this I will be using base R plots and ggplot. Finally, the last objective will be to build a logistic regression model to predict a subjective or objective sports article. To do this I will construct a logistic regression model using a step-wise AIC construction with an 80/20 split of the data. 
+
+#Results
+```{r, include=FALSE}
+library(MASS)
+library(pROC)
+library(ggplot2)
+library(reshape2)
+library(knitr)
+library(kableExtra)
+library(parallel)
+set.seed(1234)
+sports <- read.csv("Data/SportsArticles/sportart.csv", check.names = F)
+sports <- sports[,-which(names(sports) %in% c("TextID","URL"))]
+```
+
+## Data Exploration
+
+For data exploration I first aggregated all the variables by label (subjective or objective) by the mean value. It was clear to see that there were differences between groups for several variables but looking at the mean does not account for the variance, so I plotted a few variables using a boxplot. Due to the number of attributes, I did not plot every variable. I chose the variables totalWordsCount, CD, FW, INs, pronouns1st, and pronouns3rd. 
+
+```{r, echo = F, results='asis'}
+agg <- t(aggregate(.~Label, data = sports, FUN = mean))
+agg <- agg[-1,]
+colnames(agg)<- c("objective", "subjective")
+agg[,1] <- round(as.numeric(agg[,1]),3)
+agg[,2] <- round(as.numeric(agg[,2]),3)
+agg <- as.data.frame(agg)
+kable(agg,caption = "\\label{tab:pval}Results of aggregation",longtable = T)
+```
+
+```{r fig1,fig.pos='H',echo=FALSE, fig.cap="\\label{fig:fig1}totalWordsCount"}
+boxplot(totalWordsCount~Label, data = sports, main = "Total Word Count")
+```
+
+```{r fig2,fig.pos='H',echo=FALSE, fig.cap="\\label{fig:fig2}CD"}
+boxplot(CD~Label, data = sports, main = "Frequency of numerals and cardinals ")
+```
+
+```{r fig3,fig.pos='H',echo=FALSE, fig.cap="\\label{fig:fig3}FW"}
+boxplot(FW~Label, data = sports, main = "Frequency of foreign words")
+```
+
+```{r fig4,fig.pos='H',echo=FALSE, fig.cap="\\label{fig:fig4}INs"}
+boxplot(INs~Label, data = sports, main = "Frequency of subordinating preposition or conjunction")
+```
+
+```{r fig5,fig.pos='H',echo=FALSE, fig.cap="\\label{fig:fig5}pronouns1st"}
+boxplot(pronouns1st~Label, data = sports, main = "Frequency of first person pronouns (personal and possessive)")
+```
+
+\newpage
+```{r fig6,fig.pos='H',echo=FALSE, fig.cap="\\label{fig:fig6}pronouns3rd"}
+boxplot(pronouns3rd~Label, data = sports, main = "Frequency of third person pronouns (personal and possessive)")
+```
+  
+From the aggregation and boxplots we can see there are clearly differences in these attributes for subjective and objective articles. This is important because to build a good predictive model we need significant differences between variables. To see if these differences were actually significant, I ran unpaired t-tests on these variables.  
+
+## t-tests comparing objective and subjective articles
+
+```{r, echo = F}
+labels <- c("totalWordsCount","CD", "FW", "INs", "pronouns1st", "pronouns3rd")
+pvals <- rep(0,length(labels))
+i <- 1
+for(name in labels){
+  pvals[i] <- t.test(sports[sports$Label == "objective",which(colnames(sports)%in% name)], sports[sports$Label == "subjective",which(colnames(sports)%in% name)])$p.value
+pvals[i] <- signif(pvals[i], digits = 3)
+i <- i+1
+}
+```
+
+```{r, results = 'asis', echo = F}
+for(i in 1:length(pvals)){
+  if(as.numeric(pvals[i]) < 2.2e-16){
+    pvals[i] <- "< 2.2e-16"
+  }
+}
+df <- cbind(labels, pvals)
+colnames(df) <- c("Variable", "P-Values")
+kable(df, caption = "\\label{tab:pval}Results of t-test", longtable = T)
+```
+
+From the results of the t-test it was found that all the differences were significant. Next I looked at predicting if an article was subjective or objective using logistic regression. 
+
+ \newpage 
+ 
+## Logistic Regression 
+
+For my logistic regression I first split the data into a training and testing set (80/20 split). Then I used the stepAIC function in the MASS package to build the best main effects model that minimized AIC for the training set. 
+
+```{r, echo = F}
+w <- sample(1:nrow(sports), round(0.8*nrow(sports)))
+train <- sports[w,]
+val <- sports[-w,]
+
+basemodel<-glm(Label~.,family=binomial,data=train)
+bestmodel<-stepAIC(basemodel,direction="both", trace = FALSE,data=train)
+df <- as.data.frame(coef(summary(bestmodel)))
+sig <- c("**", "***", "***"," ", "**","**","***"," "," ","***","***", "***","**","*","***","**"," ", "*", "***", "**"," ","*", "*", "*","***", "**"," ",".")
+df$`Pr(>|z|)` <- noquote(paste(signif(df$`Pr(>|z|)`,digits = 6), sig))
+code <- "Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1"
+```
+
+
+```{r, results = 'asis',echo = F}
+kable(df, caption = "\\label{tab:lr}Results of Logistic Regression Model",longtable = T)
+```
+
+```{r, echo = F}
+cat(noquote(code))
+```
+
+The best model from the training data included 27 variables, which can be seen in the table of the results of the logistic regression. The interpretation of the coefficients are the effect on the log odds of the article being objective. Negative coefficients decrease the log odds of an article being objective while positive coefficients increase the log odds of an article being objective. Looking at the variable totalWordsCount, for every word in an article the log odds of the article being objective goes down by about 4%. Another big coefficient is TO’s (Frequency of "to" as preposition or infinitive marker) where the log odds of an article being objective increase by 325% for every occurrence. Most of the coefficients were significant but a few were not but I did further analysis of the model using the ROC curve. 
+
+\newpage
+
+```{r fig7,fig.height = 4, fig.width = 6, fig.pos='H', echo=FALSE, message = FALSE, fig.cap="\\label{fig:fig7}ROC training set (Area under the curve: 0.9145) "}
+predt <- predict(bestmodel, type = "response", data = train)
+roct<- roc(Label~predt,plot=T,data=train)
+```
+
+```{r fig8,fig.height = 4, fig.width = 6, fig.align= 'center',fig.pos='H',  echo=FALSE, message = FALSE, fig.cap="\\label{fig:fig8}ROC test set (Area under the curve: 0.8574)"}
+ predv <- predict(bestmodel, type = "response", newdata = val)
+ rocv <- roc(Label~predv, plot = T, data = val)
+```
+\newpage 
+
+The area under the ROC curve for the training data and test set data were very good at 0.9145 and 0.8574 respectively as seen in figure \ref{fig:fig7} and figure \ref{fig:fig8}. The most important aspect being that the model did well on the test set data meaning the model will have good performance in predicting future sports articles as objective or subjective given the variables in table \ref{tab:lr}. To take a closer look at the variables in the model I created barplots of the variables which can be found in figure 9 below. 
+
+
+```{r, echo = F}
+df <- as.data.frame(coef(bestmodel))
+names <- rownames(df)[2:nrow(df)]
+names[14] <- "PRP$"
+names[21] <- "WP$"
+
+sports.melt <- melt(sports, id.vars = "Label", measure.vars = names, 
+                    variable.name = "var" , value.name = "meas")
+
+sports.melt <- aggregate(sports.melt$meas~sports.melt$Label+sports.melt$var, FUN = sum)
+
+colnames(sports.melt) <- c("Label", "var", "meas")
+```
+
+```{r, echo = F, fig.height= 22, fig.width= 20}
+ggplot(sports.melt,aes(fill = Label, x = Label, y = meas))+ geom_col(position = "dodge")+labs(x = "Variable", y = "Total", caption ="Figure 9: Barplot of variables of logistic regression" )+
+  theme(legend.text=element_text(size=35),legend.title = element_text(size = 35), strip.text = element_text(size = 18), axis.title = element_text(size = 35),
+         plot.caption=element_text(size=25))+ facet_wrap(~sports.melt$var, ncol = 5, scales = 'free')
+```
+\newpage
+From the barplots we can see differences in the volume of occurrences of variables, but since there were a different number of objective and subjective articles we should be wary. The most interesting clear difference was for question marks, quotes and exclamation points. There were a lot more quotes in objective articles, which shows that they get information from coaches, players and experts while subjective articles do not get as much information this way. Next, there were more question marks in subjective articles which probably come from the use of rhetorical questions to get the reader thinking while objective articles are more neutral. Finally, there were more exclamation marks in subjective articles which may come from the author trying to make a point while objective articles are more neutral. There three differences are differences we expect when comparing objective and subjective articles..  
+
+#Conclusion
+From the data exploration there was clear evidence that there were differences between variables of subjective and objective articles. These differences were verified to be significant from t-tests and indicated a good predictive model could be made. Using a stepwise AIC process on training data (80/20 split) a model was built with most variables being significant. The area under the ROC curve on the test set was 0.8574 indicating a good model was built which means sports articles can be classified as objective or subjective very well. Finally, barplots showed interesting differences of the variables in terms of volume. 
+
+#Future Work
+For future work it would be interesting to look at a mixed effects model. If instead of the full URL only the host website was given this could be used as a random effect. Then the between site variance and within site variance could be compared for analysis. This could add to the predictive power of the model. In addition, one could look at the bias of sites by comparing the amount of subjective and objective sports articles. With this a bias score could be built to score websites. This can be extended to general news articles as well. 
+
+#References
+Dua, D. and Karra Taniskidou, E. (2017). UCI Machine Learning Repository [http://archive.ics.uci.edu/ml]. Irvine, CA: University of California, School of Information and Computer Science. [1] 
+
+Nadine Hajj, Yara Rizk, and Mariette Awad, 'A Subjectivity Classification Framework for Sports Articles using Cortical Algorithms for Feature Selection,' Springer Neural Computing and Applications, 2018.
